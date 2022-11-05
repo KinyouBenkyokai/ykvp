@@ -27,8 +27,6 @@ func main() {
 		panic(err)
 	}
 
-	verifier := verifier.CreateVerifier()
-
 	// Part II: The Issuer issues credentials on the Subject.
 	credentials, err := part2(issuer, subject)
 	if err != nil {
@@ -37,6 +35,7 @@ func main() {
 
 	// Part III: The Verifier (any third party) can check the claim of the
 	// Subject that it holds the credentials
+	verifier := verifier.CreateVerifier()
 	if err := part3(subject, verifier, credentials); err != nil {
 		panic(err)
 	}
