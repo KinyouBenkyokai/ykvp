@@ -33,7 +33,9 @@ func main() {
 
 	// Part III: The Verifier (any third party) can check the claim of the
 	// Subject that it holds the credentials
-	part3(subject, verifier, credentials)
+	if err := part3(subject, verifier, credentials); err != nil {
+		panic(err)
+	}
 }
 
 func part2(issuer Issuer, subject Subject) (Credential, error) {
@@ -62,12 +64,12 @@ func part2(issuer Issuer, subject Subject) (Credential, error) {
 	return credentials, err
 }
 
-func part3(subject Subject, verifier Verifier, credentials Credential) {
+func part3(subject Subject, verifier Verifier, credentials Credential) error {
 	// Step 1: The verifier creates a challenge/nonce to be included in the
 	// presentation which will be signed bby the subject.
 	nonce, err := verifier.MakeNonce()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Step 2: The subject creates the presentation and signs it.
@@ -76,7 +78,7 @@ func part3(subject Subject, verifier Verifier, credentials Credential) {
 		nonce,
 	)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	nicePrint(presentation, "Presentation")
@@ -85,9 +87,10 @@ func part3(subject Subject, verifier Verifier, credentials Credential) {
 	// correct.
 	err = verifier.VerifiesPresentation(presentation)
 	if err != nil {
-		panic(fmt.Errorf("Verificiation failed: %w", err))
+		return fmt.Errorf("Verificiation failed: %w", err)
 	}
 	fmt.Println("\n!!! Verification succeeded !!!")
+	return nil
 }
 
 func nicePrint(i interface{}, name string) {
