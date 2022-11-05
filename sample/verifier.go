@@ -1,8 +1,9 @@
 package main
 
 import (
-	"bytes"
-	"crypto/ed25519"
+	"crypto/ecdsa"
+	"crypto/sha256"
+	"encoding/asn1"
 	"fmt"
 	"math/rand"
 )
@@ -24,13 +25,14 @@ func (v Verifier) MakeNonce() (nonce []byte, err error) {
 }
 
 func (v Verifier) VerifiesPresentation(presentation Presentation) (err error) {
-	// A - Checks the Presentation is signed by the Subject of the credential
 	credential := presentation.Credential
-	credentialSubjectID := credential.CredentialSubject.ID
-	presentationProver := presentation.Proof.Creator
-	if bytes.Compare(credentialSubjectID, presentationProver) != 0 {
-		return fmt.Errorf("Presentation prover is not the credential subject.")
-	}
+
+	//// A - Checks the Presentation is signed by the Subject of the credential
+	//credentialSubjectID := credential.CredentialSubject.ID
+	//presentationProver := presentation.Proof.Creator
+	//if !presentationProver.Equal(credentialSubjectID) {
+	//	return fmt.Errorf("Presentation prover is not the credential subject.")
+	//}
 
 	// B - Checks the credential
 	signedCred, err := credential.Export()
@@ -64,6 +66,8 @@ func (v Verifier) VerifiesPresentation(presentation Presentation) (err error) {
 func verifiesSignature(proof Proof, signedDoc []byte) bool {
 	pubKey := proof.Creator
 	signature := proof.Signature
-
-	return ed25519.Verify(pubKey, signedDoc, signature)
+	var sig rawSignature
+	asn1.Unmarshal(signature, &sig)
+	hash := sha256.Sum256([]byte(signedDoc))
+	return ecdsa.Verify(pubKey, hash[:], sig.R, sig.S)
 }

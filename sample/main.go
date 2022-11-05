@@ -48,7 +48,11 @@ func part2(issuer Issuer, subject Subject) (Credential, error) {
 	nicePrint(claim, "Claim")
 
 	// Step 2: The Issuer signs the claim about this subject.
-	credentials, err := issuer.SignCredential(claim, subject.GetID())
+	id, err := subject.GetID()
+	if err != nil {
+		return Credential{}, err
+	}
+	credentials, err := issuer.SignCredential(claim, id)
 	if err != nil {
 		err = fmt.Errorf("Issuer couldn't sign credentials: %w", err)
 		return credentials, err

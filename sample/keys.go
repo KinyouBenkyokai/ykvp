@@ -1,10 +1,10 @@
 package main
 
 import (
-	"crypto/ed25519"
+	"crypto/ecdsa"
 )
 
 type KeyPair struct {
-	PublicKey  ed25519.PublicKey
-	PrivateKey ed25519.PrivateKey
+	PublicKey  *ecdsa.PublicKey
+	PrivateKey *ecdsa.PrivateKey
 }
