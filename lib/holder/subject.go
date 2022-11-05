@@ -1,18 +1,30 @@
-package main
+package holder
 
 import (
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/pem"
 	"github.com/kinyoubenkyokai/yuberify/lib"
+	"github.com/kinyoubenkyokai/yuberify/lib/entity"
+	"github.com/kinyoubenkyokai/yuberify/lib/yubico"
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 )
+
+const (
+	presType = "VerifiablePresentation"
+	vcSpec   = "https://www.w3.org/2018/credentials/v1"
+)
+
+const ed25519Type = "Ed25519Signature2018"
+
+var vcContext = []string{vcSpec}
 
 type Subject struct {
 	PublicKey *ecdsa.PublicKey
-	Yubico    lib.SignPin
+	Yubico    yubico.SignPin
 }
 
 func CreateSubject() (Subject, error) {
@@ -34,30 +46,19 @@ func CreateSubject() (Subject, error) {
 
 	subject := Subject{
 		PublicKey: publicKey,
-		Yubico:    lib.NewSignPin(),
+		Yubico:    yubico.NewSignPin(),
 	}
 
 	return subject, err
 }
 
 func (s Subject) GetID() ([]byte, error) {
-	return EncodePublic(s.PublicKey)
+	return lib.EncodePublic(s.PublicKey)
 }
 
-// EncodePublic public key
-func EncodePublic(pubKey *ecdsa.PublicKey) ([]byte, error) {
-	encoded, err := x509.MarshalPKIXPublicKey(pubKey)
-	if err != nil {
-		return []byte{}, err
-	}
-	pemEncodedPub := pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: encoded})
-
-	return pemEncodedPub, nil
-}
-
-func (s Subject) SignPresentation(credentials Credential, nonce []byte) (Presentation, error) {
-	presentation := Presentation{
-		PresentationToSign: PresentationToSign{
+func (s Subject) SignPresentation(credentials entity.Credential, nonce []byte) (entity.Presentation, error) {
+	presentation := entity.Presentation{
+		PresentationToSign: entity.PresentationToSign{
 			Context:            vcContext,
 			TypeOfPresentation: []string{presType},
 			Credential:         credentials,
@@ -74,4 +75,18 @@ func (s Subject) SignPresentation(credentials Credential, nonce []byte) (Present
 	}
 	presentation.Proof = sig
 	return presentation, err
+}
+
+func SignProofHolder(s Subject, docToSign []byte) (entity.Proof, error) {
+	sig, err := s.Yubico.VerifyByYubikey(docToSign, 123456)
+	if err != nil {
+		return entity.Proof{}, err
+	}
+	proof := entity.Proof{
+		TypeOfProof: ed25519Type,
+		Created:     time.Now(),
+		Creator:     s.PublicKey,
+		Signature:   sig,
+	}
+	return proof, nil
 }

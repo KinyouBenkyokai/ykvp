@@ -1,11 +1,8 @@
-package main
+package entity
 
 import (
+	"github.com/kinyoubenkyokai/yuberify/lib"
 	"time"
-)
-
-const (
-	vcType = "VerifiableCredential"
 )
 
 type Claim struct {
@@ -22,7 +19,6 @@ type CredentialSubject struct {
 type CredentialToSign struct {
 	Context           []string          `json:"context"`
 	TypeOfCredential  []string          `json:"type"`
-	Issuer            Issuer            `json:"issuer"`
 	IssuanceDate      time.Time         `json:"issuanceDate"`
 	CredentialSubject CredentialSubject `json:"credentialSubject"`
 }
@@ -38,6 +34,6 @@ func (c Claim) GetType() []string {
 }
 
 func (c Credential) Export() (buf []byte, err error) {
-	buf, err = export(c.CredentialToSign)
+	buf, err = lib.Export(c.CredentialToSign)
 	return buf, err
 }

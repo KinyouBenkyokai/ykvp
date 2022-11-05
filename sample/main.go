@@ -3,6 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/kinyoubenkyokai/yuberify/lib/entity"
+	"github.com/kinyoubenkyokai/yuberify/lib/holder"
+	"github.com/kinyoubenkyokai/yuberify/lib/issuer"
+	"github.com/kinyoubenkyokai/yuberify/lib/verifier"
 	"os"
 )
 
@@ -13,17 +17,17 @@ const (
 
 func main() {
 	// Part I: Create the issuer, the subject, and the verifier.
-	issuer, err := CreateIssuer(issuerID, issuerName)
+	issuer, err := issuer.CreateIssuer(issuerID, issuerName)
 	if err != nil {
 		panic(err)
 	}
 
-	subject, err := CreateSubject()
+	subject, err := holder.CreateSubject()
 	if err != nil {
 		panic(err)
 	}
 
-	verifier := CreateVerifier()
+	verifier := verifier.CreateVerifier()
 
 	// Part II: The Issuer issues credentials on the Subject.
 	credentials, err := part2(issuer, subject)
@@ -38,11 +42,11 @@ func main() {
 	}
 }
 
-func part2(issuer Issuer, subject Subject) (Credential, error) {
+func part2(issuer issuer.Issuer, subject holder.Subject) (entity.Credential, error) {
 	// Step 1: Create a Subject and a claim to sign about this subject.
 	// The claim is created jointly by the Subject and the Issuer. How they come
 	// to agree on the claim to sign is out of scope here.
-	claim := Claim{
+	claim := entity.Claim{
 		Age:            24,
 		UniversityName: "Oxford",
 		Degree:         "Bachelor of Science",
@@ -52,7 +56,7 @@ func part2(issuer Issuer, subject Subject) (Credential, error) {
 	// Step 2: The Issuer signs the claim about this subject.
 	id, err := subject.GetID()
 	if err != nil {
-		return Credential{}, err
+		return entity.Credential{}, err
 	}
 	credentials, err := issuer.SignCredential(claim, id)
 	if err != nil {
@@ -64,7 +68,7 @@ func part2(issuer Issuer, subject Subject) (Credential, error) {
 	return credentials, err
 }
 
-func part3(subject Subject, verifier Verifier, credentials Credential) error {
+func part3(subject holder.Subject, verifier verifier.Verifier, credentials entity.Credential) error {
 	// Step 1: The verifier creates a challenge/nonce to be included in the
 	// presentation which will be signed bby the subject.
 	nonce, err := verifier.MakeNonce()

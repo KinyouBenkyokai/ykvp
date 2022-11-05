@@ -1,23 +1,27 @@
-package main
+package issuer
 
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"fmt"
+	"github.com/kinyoubenkyokai/yuberify/lib/entity"
 	"time"
 )
 
+const (
+	vcType = "VerifiableCredential"
+	vcSpec = "https://www.w3.org/2018/credentials/v1"
+)
+
+var vcContext = []string{vcSpec}
+
 type Issuer struct {
-	keys KeyPair
+	keys entity.KeyPair
 
 	ID   string
 	Name string
 }
-
-const vcSpec = "https://www.w3.org/2018/credentials/v1"
-
-var vcContext = []string{vcSpec}
 
 func CreateIssuer(id, name string) (Issuer, error) {
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -27,7 +31,7 @@ func CreateIssuer(id, name string) (Issuer, error) {
 	}
 	pub := privateKey.PublicKey
 	issuer := Issuer{
-		keys: KeyPair{PublicKey: &pub, PrivateKey: privateKey},
+		keys: entity.KeyPair{PublicKey: &pub, PrivateKey: privateKey},
 		ID:   id,
 		Name: name,
 	}
@@ -35,13 +39,12 @@ func CreateIssuer(id, name string) (Issuer, error) {
 	return issuer, err
 }
 
-func (i Issuer) SignCredential(claim Claim, subjectID []byte) (Credential, error) {
-	creds := Credential{CredentialToSign: CredentialToSign{
+func (i Issuer) SignCredential(claim entity.Claim, subjectID []byte) (entity.Credential, error) {
+	creds := entity.Credential{CredentialToSign: entity.CredentialToSign{
 		Context:          vcContext,
 		TypeOfCredential: append(claim.GetType(), vcType),
-		Issuer:           i,
 		IssuanceDate:     time.Now(),
-		CredentialSubject: CredentialSubject{
+		CredentialSubject: entity.CredentialSubject{
 			ID:    subjectID,
 			Claim: claim,
 		},
@@ -52,6 +55,6 @@ func (i Issuer) SignCredential(claim Claim, subjectID []byte) (Credential, error
 		return creds, err
 	}
 
-	creds.Proof = SignProofIssuer(i.keys, docToSign)
+	creds.Proof = entity.SignProofIssuer(i.keys, docToSign)
 	return creds, err
 }

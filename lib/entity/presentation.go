@@ -1,7 +1,7 @@
-package main
+package entity
 
-const (
-	presType = "VerifiablePresentation"
+import (
+	"github.com/kinyoubenkyokai/yuberify/lib"
 )
 
 type PresentationToSign struct {
@@ -18,6 +18,6 @@ type Presentation struct {
 }
 
 func (p Presentation) Export() (buf []byte, err error) {
-	buf, err = export(p.PresentationToSign)
+	buf, err = lib.Export(p.PresentationToSign)
 	return buf, err
 }

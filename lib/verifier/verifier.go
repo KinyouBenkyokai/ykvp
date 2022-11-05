@@ -1,4 +1,4 @@
-package main
+package verifier
 
 import (
 	"bytes"
@@ -6,6 +6,8 @@ import (
 	"crypto/sha256"
 	"encoding/asn1"
 	"fmt"
+	"github.com/kinyoubenkyokai/yuberify/lib"
+	"github.com/kinyoubenkyokai/yuberify/lib/entity"
 	"math/rand"
 )
 
@@ -25,13 +27,13 @@ func (v Verifier) MakeNonce() (nonce []byte, err error) {
 	return nonce, err
 }
 
-func (v Verifier) VerifiesPresentation(presentation Presentation) (err error) {
+func (v Verifier) VerifiesPresentation(presentation entity.Presentation) (err error) {
 	credential := presentation.Credential
 
 	// A - Checks the Presentation is signed by the Subject of the credential
 	credentialSubjectID := credential.CredentialSubject.ID
 	presentationProver := presentation.Proof.Creator
-	b, err := EncodePublic(presentationProver)
+	b, err := lib.EncodePublic(presentationProver)
 	if err != nil {
 		return err
 	}
@@ -68,10 +70,10 @@ func (v Verifier) VerifiesPresentation(presentation Presentation) (err error) {
 	return err
 }
 
-func verifiesSignature(proof Proof, signedDoc []byte) bool {
+func verifiesSignature(proof entity.Proof, signedDoc []byte) bool {
 	pubKey := proof.Creator
 	signature := proof.Signature
-	var sig rawSignature
+	var sig entity.RawSignature
 	asn1.Unmarshal(signature, &sig)
 	hash := sha256.Sum256([]byte(signedDoc))
 	return ecdsa.Verify(pubKey, hash[:], sig.R, sig.S)
