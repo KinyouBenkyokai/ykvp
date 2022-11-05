@@ -1,47 +1,77 @@
 package main
 
 import (
-	"crypto/ed25519"
-	"fmt"
+	"crypto/ecdsa"
+	"crypto/x509"
+	"encoding/pem"
+	"github.com/kinyoubenkyokai/yuberify/lib"
+	"io"
+	"os"
+	"path/filepath"
 )
 
 type Subject struct {
-	keys KeyPair
+	PublicKey *ecdsa.PublicKey
+	Yubico    lib.SignPin
 }
 
 func CreateSubject() (Subject, error) {
-	pub, priv, err := ed25519.GenerateKey(nil)
+	p, err := filepath.Abs("./tmp/public-key.pem")
 	if err != nil {
-		err = fmt.Errorf("Couldn't create subject keys: %w", err)
 		return Subject{}, err
 	}
+	f, err := os.Open(p)
+	if err != nil {
+		return Subject{}, err
+	}
+	pubkeyBytes, err := io.ReadAll(f)
+	if err != nil {
+		return Subject{}, err
+	}
+	block, _ := pem.Decode(pubkeyBytes)
+	genericPublicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+	publicKey := genericPublicKey.(*ecdsa.PublicKey)
 
 	subject := Subject{
-		keys: KeyPair{PublicKey: pub, PrivateKey: priv},
+		PublicKey: publicKey,
+		Yubico:    lib.NewSignPin(),
 	}
 
 	return subject, err
 }
 
-func (s Subject) GetID() []byte {
-	return []byte(s.keys.PublicKey)
+func (s Subject) GetID() ([]byte, error) {
+	return EncodePublic(s.PublicKey)
 }
 
-func (s Subject) SignPresentation(credentials Credential, nonce []byte) (
-	Presentation, error) {
+// EncodePublic public key
+func EncodePublic(pubKey *ecdsa.PublicKey) ([]byte, error) {
+	encoded, err := x509.MarshalPKIXPublicKey(pubKey)
+	if err != nil {
+		return []byte{}, err
+	}
+	pemEncodedPub := pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: encoded})
 
-	presentation := Presentation{PresentationToSign: PresentationToSign{
-		Context:            vcContext,
-		TypeOfPresentation: []string{presType},
-		Credential:         credentials,
-		Nonce:              nonce,
-	}}
+	return pemEncodedPub, nil
+}
+
+func (s Subject) SignPresentation(credentials Credential, nonce []byte) (Presentation, error) {
+	presentation := Presentation{
+		PresentationToSign: PresentationToSign{
+			Context:            vcContext,
+			TypeOfPresentation: []string{presType},
+			Credential:         credentials,
+			Nonce:              nonce,
+		}}
 
 	docToSign, err := presentation.Export()
 	if err != nil {
 		return presentation, err
 	}
-
-	presentation.Proof = SignProof(s.keys, docToSign)
+	sig, err := SignProofHolder(s, docToSign)
+	if err != nil {
+		return presentation, err
+	}
+	presentation.Proof = sig
 	return presentation, err
 }

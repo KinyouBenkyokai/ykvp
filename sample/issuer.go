@@ -1,7 +1,9 @@
 package main
 
 import (
-	"crypto/ed25519"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"fmt"
 	"time"
 )
@@ -18,14 +20,14 @@ const vcSpec = "https://www.w3.org/2018/credentials/v1"
 var vcContext = []string{vcSpec}
 
 func CreateIssuer(id, name string) (Issuer, error) {
-	pub, priv, err := ed25519.GenerateKey(nil)
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		err = fmt.Errorf("Couldn't create issuer keys: %w", err)
 		return Issuer{}, err
 	}
-
+	pub := privateKey.PublicKey
 	issuer := Issuer{
-		keys: KeyPair{PublicKey: pub, PrivateKey: priv},
+		keys: KeyPair{PublicKey: &pub, PrivateKey: privateKey},
 		ID:   id,
 		Name: name,
 	}
@@ -50,6 +52,6 @@ func (i Issuer) SignCredential(claim Claim, subjectID []byte) (Credential, error
 		return creds, err
 	}
 
-	creds.Proof = SignProof(i.keys, docToSign)
+	creds.Proof = SignProofIssuer(i.keys, docToSign)
 	return creds, err
 }
