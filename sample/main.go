@@ -1,12 +1,15 @@
 package main
 
 import (
+	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
 	"github.com/kinyoubenkyokai/yuberify/lib/entity"
 	"github.com/kinyoubenkyokai/yuberify/lib/holder"
 	"github.com/kinyoubenkyokai/yuberify/lib/issuer"
+	"github.com/kinyoubenkyokai/yuberify/lib/key"
 	"github.com/kinyoubenkyokai/yuberify/lib/verifier"
+	"github.com/kinyoubenkyokai/yuberify/lib/yubico"
 	"os"
 )
 
@@ -15,18 +18,39 @@ const (
 	issuerName = "The Marvelous University of Oxford"
 )
 
+func test() (*ecdsa.PublicKey, error) {
+	prv, _ := key.GenerateECDSAPrivateKey()
+	pub := key.GetPublicKeyFromECDSAPrivateKey(prv)
+	prvPEM, err := key.CreateX509FromECDSAPrivateKey(prv, "./tmp/prv.pem")
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(prvPEM)
+	cert, err := key.GenerateCert(pub, prv, "./tmp/cert.pem")
+	if err != nil {
+		return nil, err
+	}
+	pkcs12, err := key.GeneratePKCS12(cert, prv, "./tmp/pkcs12.p12", "password")
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(pkcs12)
+
+	_, err = yubico.ImportKeyToYubikeySlot(pkcs12, "password")
+	if err != nil {
+		return nil, err
+	}
+	return pub, nil
+}
 func main() {
-	// Part I: Create the issuer, the subject, and the verifier.
-	issuer, err := issuer.CreateIssuer(issuerID, issuerName)
+	pub, err := test()
 	if err != nil {
 		panic(err)
 	}
-
-	subject, err := holder.CreateSubject()
+	issuer, subject, err := part1(pub)
 	if err != nil {
 		panic(err)
 	}
-
 	// Part II: The Issuer issues credentials on the Subject.
 	credentials, err := part2(issuer, subject)
 	if err != nil {
@@ -39,6 +63,20 @@ func main() {
 	if err := part3(subject, verifier, credentials); err != nil {
 		panic(err)
 	}
+}
+
+func part1(pub *ecdsa.PublicKey) (issuer.Issuer, holder.Subject, error) {
+	// Part I: Create the issuer, the subject, and the verifier.
+	issuer, err := issuer.CreateIssuer(issuerID, issuerName)
+	if err != nil {
+		panic(err)
+	}
+
+	subject, err := holder.CreateSubject(pub)
+	if err != nil {
+		return issuer, subject, err
+	}
+	return issuer, subject, err
 }
 
 func part2(issuer issuer.Issuer, subject holder.Subject) (entity.Credential, error) {
@@ -79,6 +117,7 @@ func part3(subject holder.Subject, verifier verifier.Verifier, credentials entit
 	presentation, err := subject.SignPresentation(
 		credentials,
 		nonce,
+		123456,
 	)
 	if err != nil {
 		return err

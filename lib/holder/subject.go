@@ -2,14 +2,9 @@ package holder
 
 import (
 	"crypto/ecdsa"
-	"crypto/x509"
-	"encoding/pem"
 	"github.com/kinyoubenkyokai/yuberify/lib"
 	"github.com/kinyoubenkyokai/yuberify/lib/entity"
 	"github.com/kinyoubenkyokai/yuberify/lib/yubico"
-	"io"
-	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -27,36 +22,19 @@ type Subject struct {
 	Yubico    yubico.SignPin
 }
 
-func CreateSubject() (Subject, error) {
-	p, err := filepath.Abs("./tmp/public-key.pem")
-	if err != nil {
-		return Subject{}, err
-	}
-	f, err := os.Open(p)
-	if err != nil {
-		return Subject{}, err
-	}
-	pubkeyBytes, err := io.ReadAll(f)
-	if err != nil {
-		return Subject{}, err
-	}
-	block, _ := pem.Decode(pubkeyBytes)
-	genericPublicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
-	publicKey := genericPublicKey.(*ecdsa.PublicKey)
-
+func CreateSubject(pub *ecdsa.PublicKey) (Subject, error) {
 	subject := Subject{
-		PublicKey: publicKey,
+		PublicKey: pub,
 		Yubico:    yubico.NewSignPin(),
 	}
-
-	return subject, err
+	return subject, nil
 }
 
 func (s Subject) GetID() ([]byte, error) {
 	return lib.EncodePublic(s.PublicKey)
 }
 
-func (s Subject) SignPresentation(credentials entity.Credential, nonce []byte) (entity.Presentation, error) {
+func (s Subject) SignPresentation(credentials entity.Credential, nonce []byte, yubikeyPIN int32) (entity.Presentation, error) {
 	presentation := entity.Presentation{
 		PresentationToSign: entity.PresentationToSign{
 			Context:            vcContext,
@@ -69,7 +47,7 @@ func (s Subject) SignPresentation(credentials entity.Credential, nonce []byte) (
 	if err != nil {
 		return presentation, err
 	}
-	sig, err := SignProofHolder(s, docToSign)
+	sig, err := SignProofHolderWithYubikey(s, docToSign, yubikeyPIN)
 	if err != nil {
 		return presentation, err
 	}
@@ -77,8 +55,8 @@ func (s Subject) SignPresentation(credentials entity.Credential, nonce []byte) (
 	return presentation, err
 }
 
-func SignProofHolder(s Subject, docToSign []byte) (entity.Proof, error) {
-	sig, err := s.Yubico.VerifyByYubikey(docToSign, 123456)
+func SignProofHolderWithYubikey(s Subject, docToSign []byte, yubikeyPIN int32) (entity.Proof, error) {
+	sig, err := s.Yubico.VerifyByYubikey(docToSign, yubikeyPIN)
 	if err != nil {
 		return entity.Proof{}, err
 	}

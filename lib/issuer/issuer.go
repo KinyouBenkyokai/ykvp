@@ -1,11 +1,9 @@
 package issuer
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
 	"fmt"
 	"github.com/kinyoubenkyokai/yuberify/lib/entity"
+	"github.com/kinyoubenkyokai/yuberify/lib/key"
 	"time"
 )
 
@@ -24,18 +22,16 @@ type Issuer struct {
 }
 
 func CreateIssuer(id, name string) (Issuer, error) {
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey, err := key.GenerateECDSAPrivateKey()
 	if err != nil {
-		err = fmt.Errorf("Couldn't create issuer keys: %w", err)
-		return Issuer{}, err
+		return Issuer{}, fmt.Errorf("couldn't create issuer keys: %w", err)
 	}
-	pub := privateKey.PublicKey
+	pub := key.GetPublicKeyFromECDSAPrivateKey(privateKey)
 	issuer := Issuer{
-		keys: entity.KeyPair{PublicKey: &pub, PrivateKey: privateKey},
+		keys: entity.KeyPair{PublicKey: pub, PrivateKey: privateKey},
 		ID:   id,
 		Name: name,
 	}
-
 	return issuer, err
 }
 
