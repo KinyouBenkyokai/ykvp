@@ -3,13 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kinyoubenkyokai/yuberify/lib/yubico"
+	"github.com/kinyoubenkyokai/ykvp/lib/yubico"
 	"log"
 	"os"
 
-	"github.com/kinyoubenkyokai/yuberify/lib/entity"
-	"github.com/kinyoubenkyokai/yuberify/lib/holder"
-	"github.com/kinyoubenkyokai/yuberify/lib/verifier"
+	"github.com/kinyoubenkyokai/ykvp/lib/entity"
+	"github.com/kinyoubenkyokai/ykvp/lib/holder"
+	"github.com/kinyoubenkyokai/ykvp/lib/verifier"
 	"github.com/urfave/cli/v2"
 )
 

@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/verifiable"
-	"github.com/kinyoubenkyokai/yuberify/lib/entity"
-	"github.com/kinyoubenkyokai/yuberify/lib/holder"
-	"github.com/kinyoubenkyokai/yuberify/lib/issuer"
-	"github.com/kinyoubenkyokai/yuberify/lib/verifier"
-	"github.com/kinyoubenkyokai/yuberify/lib/yubico"
+	"github.com/kinyoubenkyokai/ykvp/lib/entity"
+	"github.com/kinyoubenkyokai/ykvp/lib/holder"
+	"github.com/kinyoubenkyokai/ykvp/lib/issuer"
+	"github.com/kinyoubenkyokai/ykvp/lib/verifier"
+	"github.com/kinyoubenkyokai/ykvp/lib/yubico"
 	"os"
 )
 

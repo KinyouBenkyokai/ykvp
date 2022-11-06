@@ -4,9 +4,9 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/verifiable"
-	"github.com/kinyoubenkyokai/yuberify/lib"
-	"github.com/kinyoubenkyokai/yuberify/lib/entity"
-	"github.com/kinyoubenkyokai/yuberify/lib/yubico"
+	"github.com/kinyoubenkyokai/ykvp/lib"
+	"github.com/kinyoubenkyokai/ykvp/lib/entity"
+	"github.com/kinyoubenkyokai/ykvp/lib/yubico"
 	"time"
 )
 

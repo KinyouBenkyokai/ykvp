@@ -2,8 +2,8 @@ package issuer
 
 import (
 	"fmt"
-	"github.com/kinyoubenkyokai/yuberify/lib/entity"
-	"github.com/kinyoubenkyokai/yuberify/lib/key"
+	"github.com/kinyoubenkyokai/ykvp/lib/entity"
+	"github.com/kinyoubenkyokai/ykvp/lib/key"
 	"time"
 )
 

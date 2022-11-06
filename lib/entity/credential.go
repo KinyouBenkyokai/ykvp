@@ -2,7 +2,7 @@ package entity
 
 import (
 	"encoding/json"
-	"github.com/kinyoubenkyokai/yuberify/lib"
+	"github.com/kinyoubenkyokai/ykvp/lib"
 	"time"
 )
 

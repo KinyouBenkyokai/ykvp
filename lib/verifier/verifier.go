@@ -6,8 +6,8 @@ import (
 	"crypto/ecdsa"
 	"encoding/asn1"
 	"fmt"
-	"github.com/kinyoubenkyokai/yuberify/lib"
-	"github.com/kinyoubenkyokai/yuberify/lib/entity"
+	"github.com/kinyoubenkyokai/ykvp/lib"
+	"github.com/kinyoubenkyokai/ykvp/lib/entity"
 	"math/big"
 	"math/rand"
 )

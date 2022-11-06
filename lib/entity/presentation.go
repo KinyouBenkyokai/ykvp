@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/kinyoubenkyokai/yuberify/lib"
+	"github.com/kinyoubenkyokai/ykvp/lib"
 )
 
 type PresentationToSign struct {
