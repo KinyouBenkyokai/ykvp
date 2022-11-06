@@ -48,7 +48,7 @@ func getYubikey() (*piv.YubiKey, error) {
 	return yk, nil
 }
 
-func (s *Yubikey) ImportKey() (crypto.PublicKey, error) {
+func (s *Yubikey) GenerateKey() (crypto.PublicKey, error) {
 	key := piv.Key{
 		Algorithm:   piv.AlgorithmEC256,
 		PINPolicy:   piv.PINPolicyAlways,

@@ -15,7 +15,7 @@ func TestYubiKeySignECDSA(t *testing.T) {
 		t.Fatalf("reset yubikey: %v", err)
 	}
 
-	pubKey, err := yk.ImportKey()
+	pubKey, err := yk.GenerateKey()
 	out, err := yk.SignByYubikey(pubKey, []byte("hello"), 123456)
 	if err != nil {
 		t.Fatalf("signing failed: %v", err)
