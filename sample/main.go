@@ -18,26 +18,8 @@ const (
 	issuerName = "The Marvelous University of Oxford"
 )
 
-// generatePKCS12FileAndImportToYubikey generates a PKCS12 file and imports it
-func generatePKCS12FileAndImportToYubikey() (*ecdsa.PublicKey, error) {
-	yk, err := yubico.NewYubikey()
-	if err != nil {
-		return nil, err
-	}
-	defer yk.Close()
-	pub, err := yk.GenerateKey()
-	if err != nil {
-		return nil, err
-	}
-	pubkey, ok := pub.(*ecdsa.PublicKey)
-	if !ok {
-		return nil, fmt.Errorf("public key is not an ECDSA key")
-	}
-	return pubkey, nil
-}
-
 func main() {
-	holderPubkey, err := generatePKCS12FileAndImportToYubikey()
+	holderPubkey, err := yubico.GenerateAndImportKeyToYubikey()
 	if err != nil {
 		panic(err)
 	}
