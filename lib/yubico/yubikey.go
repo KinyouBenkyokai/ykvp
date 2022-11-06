@@ -58,7 +58,10 @@ func (s *Yubikey) ImportKey() (crypto.PublicKey, error) {
 }
 
 func (s *Yubikey) SignByYubikey(pub crypto.PublicKey, text []byte, pin int32) ([]byte, error) {
-	auth := piv.KeyAuth{PIN: fmt.Sprintf("%d", pin)}
+	auth := piv.KeyAuth{
+		PIN:       fmt.Sprintf("%d", pin),
+		PINPolicy: piv.PINPolicyAlways,
+	}
 	priv, err := s.yk.PrivateKey(piv.SlotSignature, pub, auth)
 	if err != nil {
 		return nil, err
@@ -68,6 +71,7 @@ func (s *Yubikey) SignByYubikey(pub crypto.PublicKey, text []byte, pin int32) ([
 	if !ok {
 		return nil, errors.New("expected private key to implement crypto.Signer")
 	}
+	fmt.Println("please touch yubikey...")
 	signed, err := cs.Sign(rand.Reader, data[:], crypto.SHA256)
 	return signed, err
 }
