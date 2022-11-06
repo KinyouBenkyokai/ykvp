@@ -27,6 +27,7 @@ func TestUnmarshalCredential(t *testing.T) {
 				IssuanceDate:     time.Date(2021, 5, 30, 15, 0, 0, 0, time.UTC),
 				CredentialSubject: CredentialSubject{
 					ID: []byte(""),
+
 					Claim: Claim{
 						Age:            22,
 						UniversityName: "University of Tokyo",
