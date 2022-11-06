@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
+	"github.com/hyperledger/aries-framework-go/pkg/doc/verifiable"
 	"github.com/kinyoubenkyokai/yuberify/lib/entity"
 	"github.com/kinyoubenkyokai/yuberify/lib/holder"
 	"github.com/kinyoubenkyokai/yuberify/lib/issuer"
@@ -41,7 +42,12 @@ func main() {
 		panic(err)
 	}
 
-	issuer, subject, err := part1(holderPubkey)
+	issuer, holder, err := part1(holderPubkey)
+	if err != nil {
+		panic(err)
+	}
+
+	subject, err := holder.GetSubject()
 	if err != nil {
 		panic(err)
 	}
@@ -50,30 +56,27 @@ func main() {
 		panic(err)
 	}
 	verifier := verifier.CreateVerifier()
-	if err := part3(subject, verifier, credentials, holderPubkey); err != nil {
+	if err := part3(holder, verifier, credentials, holderPubkey); err != nil {
 		panic(err)
 	}
 }
 
 // part1 creates an issuer and a subject.
-func part1(pub *ecdsa.PublicKey) (issuer.Issuer, holder.Subject, error) {
+func part1(pub *ecdsa.PublicKey) (issuer.Issuer, holder.Holder, error) {
 	// Part I: Create the issuer, the subject, and the verifier.
 	issuer, err := issuer.CreateIssuer(issuerID, issuerName)
 	if err != nil {
 		panic(err)
 	}
 
-	subject, err := holder.CreateSubject(pub)
-	if err != nil {
-		return issuer, subject, err
-	}
-	return issuer, subject, err
+	holder, err := holder.CreateHolder(pub)
+	return issuer, holder, err
 }
 
 // part2 creates credentials for the subject.
-func part2(issuer issuer.Issuer, subject holder.Subject) (entity.Credential, error) {
-	// Step 1: Create a Subject and a claim to sign about this subject.
-	// The claim is created jointly by the Subject and the Issuer. How they come
+func part2(issuer issuer.Issuer, subject verifiable.Subject) (entity.Credential, error) {
+	// Step 1: Create a Holder and a claim to sign about this subject.
+	// The claim is created jointly by the Holder and the Issuer. How they come
 	// to agree on the claim to sign is out of scope here.
 	claim := entity.Claim{
 		Age:            24,
@@ -83,11 +86,7 @@ func part2(issuer issuer.Issuer, subject holder.Subject) (entity.Credential, err
 	nicePrint(claim, "Claim")
 
 	// Step 2: The Issuer signs the claim about this subject.
-	id, err := subject.GetID()
-	if err != nil {
-		return entity.Credential{}, err
-	}
-	credentials, err := issuer.SignCredential(claim, id)
+	credentials, err := issuer.SignCredential(claim, []byte(subject.ID))
 	if err != nil {
 		err = fmt.Errorf("issuer couldn't sign credentials: %w", err)
 		return credentials, err
@@ -98,13 +97,13 @@ func part2(issuer issuer.Issuer, subject holder.Subject) (entity.Credential, err
 }
 
 // part3 verifies the credentials.
-func part3(subject holder.Subject, verifier verifier.Verifier, credentials entity.Credential, holderPubkey *ecdsa.PublicKey) error {
+func part3(holder holder.Holder, verifier verifier.Verifier, credentials entity.Credential, holderPubkey *ecdsa.PublicKey) error {
 	nonce, err := verifier.MakeNonce()
 	if err != nil {
 		return err
 	}
 
-	presentation, err := subject.SignPresentation(
+	presentation, err := holder.SignPresentation(
 		credentials,
 		nonce,
 		123456,
