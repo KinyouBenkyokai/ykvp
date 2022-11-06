@@ -1,4 +1,4 @@
-module github.com/kinyoubenkyokai/yuberify
+module github.com/kinyoubenkyokai/ykvp
 
 go 1.18
 
