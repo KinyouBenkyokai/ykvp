@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/go-piv/piv-go v1.10.0
+	github.com/golang/mock v1.6.0
 	software.sslmate.com/src/go-pkcs12 v0.2.0
 )
 

@@ -10,8 +10,16 @@ import (
 	"strings"
 )
 
+//go:generate mockgen -source=$GOFILE -destination=mock_$GOFILE -package=yubico
+
+type pivYubikey interface {
+	PrivateKey(slot piv.Slot, pub crypto.PublicKey, auth piv.KeyAuth) (crypto.PrivateKey, error)
+	GenerateKey(key [24]byte, slot piv.Slot, keyTemplate piv.Key) (crypto.PublicKey, error)
+	Close() error
+}
+
 type Yubikey struct {
-	yk *piv.YubiKey
+	yk pivYubikey
 }
 
 func NewYubikey() (*Yubikey, error) {

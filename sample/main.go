@@ -89,7 +89,7 @@ func part2(issuer issuer.Issuer, subject holder.Subject) (entity.Credential, err
 	}
 	credentials, err := issuer.SignCredential(claim, id)
 	if err != nil {
-		err = fmt.Errorf("Issuer couldn't sign credentials: %w", err)
+		err = fmt.Errorf("issuer couldn't sign credentials: %w", err)
 		return credentials, err
 	}
 
