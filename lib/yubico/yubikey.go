@@ -51,8 +51,8 @@ func getYubikey() (*piv.YubiKey, error) {
 func (s *Yubikey) ImportKey() (crypto.PublicKey, error) {
 	key := piv.Key{
 		Algorithm:   piv.AlgorithmEC256,
-		PINPolicy:   piv.PINPolicyNever,
-		TouchPolicy: piv.TouchPolicyNever,
+		PINPolicy:   piv.PINPolicyAlways,
+		TouchPolicy: piv.TouchPolicyAlways,
 	}
 	return s.yk.GenerateKey(piv.DefaultManagementKey, piv.SlotSignature, key)
 }
