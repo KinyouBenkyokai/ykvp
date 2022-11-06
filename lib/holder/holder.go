@@ -24,6 +24,7 @@ type Holder struct {
 	Yubico    *yubico.Yubikey
 }
 
+// CreateHolder creates a holder.
 func CreateHolder(pub *ecdsa.PublicKey) (Holder, error) {
 	yk, err := yubico.NewYubikey()
 	if err != nil {
@@ -36,6 +37,7 @@ func CreateHolder(pub *ecdsa.PublicKey) (Holder, error) {
 	return holder, nil
 }
 
+// GetSubject returns the subject of the holder.
 func (s Holder) GetSubject() (verifiable.Subject, error) {
 	id, err := lib.EncodePublic(s.PublicKey)
 	if err != nil {
@@ -47,6 +49,7 @@ func (s Holder) GetSubject() (verifiable.Subject, error) {
 	}, nil
 }
 
+// SignPresentation  creates a presentation.
 func (s Holder) SignPresentation(credentials entity.Credential, nonce []byte, yubikeyPIN int32) (entity.Presentation, error) {
 	presentation := entity.Presentation{
 		PresentationToSign: entity.PresentationToSign{
@@ -68,6 +71,7 @@ func (s Holder) SignPresentation(credentials entity.Credential, nonce []byte, yu
 	return presentation, err
 }
 
+// SignProofHolderWithYubikey signs a presentation with a yubikey.
 func SignProofHolderWithYubikey(s Holder, docToSign []byte, yubikeyPIN int32) (entity.Proof, error) {
 	sig, err := s.Yubico.SignByYubikey(s.PublicKey, docToSign, yubikeyPIN)
 	if err != nil {

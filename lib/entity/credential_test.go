@@ -19,7 +19,25 @@ func TestUnmarshalCredential(t *testing.T) {
 		{
 			name: "",
 			args: args{
-				b: []byte("{\"context\":[\"https://www.w3.org/2018/credentials/v1\"],\"type\":[\"GraduationCredential\",\"VerifiableCredential\"],\"issuanceDate\":\"2021-05-30T15:00:00Z\",\"credentialSubject\":{\"id\":\"\",\"claim\":{\"age\":22,\"universityName\":\"University of Tokyo\",\"degree\":\"Bachelor\"}}}"),
+				b: []byte(`
+					{
+						"context": [
+							"https://www.w3.org/2018/credentials/v1"
+						],
+						"type": [
+							"GraduationCredential",
+							"VerifiableCredential"
+						],
+						"issuanceDate": "2021-05-30T15:00:00Z",
+						"credentialSubject": {
+							"id": "",
+							"claim": {
+								"age": 22,
+								"universityName": "University of Tokyo",
+								"degree": "Bachelor"
+							}
+						}
+					}`),
 			},
 			want: &CredentialToSign{
 				Context:          []string{"https://www.w3.org/2018/credentials/v1"},
