@@ -39,27 +39,27 @@ func (v Verifier) VerifiesPresentation(presentation entity.Presentation, holderP
 		return err
 	}
 	if bytes.Compare(credentialSubjectID, b) != 0 {
-		return fmt.Errorf("Presentation prover is not the credential subject.")
+		return fmt.Errorf("presentation prover is not the credential subject")
 	}
 
 	// B - Checks the credential
 	signedCred, err := credential.Export()
 	if err != nil {
 		return fmt.Errorf(
-			"Couldn't export credential to verify signature: %w", err,
+			"couldn't export credential to verify signature: %w", err,
 		)
 	}
 
 	okCred := verifiesSignature(credential.Proof.Creator, credential.Proof.Signature, signedCred)
 	if !okCred {
-		return fmt.Errorf("Invalid credential signature.")
+		return fmt.Errorf("invalid credential signature")
 	}
 
 	// C - Checks the presentation
 	signedPres, err := presentation.Export()
 	if err != nil {
 		return fmt.Errorf(
-			"Couldn't export presentation to verify signature: %w", err,
+			"couldn't export presentation to verify signature: %w", err,
 		)
 	}
 
