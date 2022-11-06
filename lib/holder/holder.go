@@ -3,6 +3,7 @@ package holder
 import (
 	"crypto"
 	"crypto/ecdsa"
+	"github.com/hyperledger/aries-framework-go/pkg/doc/verifiable"
 	"github.com/kinyoubenkyokai/yuberify/lib"
 	"github.com/kinyoubenkyokai/yuberify/lib/entity"
 	"github.com/kinyoubenkyokai/yuberify/lib/yubico"
@@ -18,28 +19,35 @@ const ecdsaType = "ecdsasecp256k1signature2019"
 
 var vcContext = []string{vcSpec}
 
-type Subject struct {
+type Holder struct {
 	PublicKey crypto.PublicKey
 	Yubico    *yubico.Yubikey
 }
 
-func CreateSubject(pub *ecdsa.PublicKey) (Subject, error) {
+func CreateHolder(pub *ecdsa.PublicKey) (Holder, error) {
 	yk, err := yubico.NewYubikey()
 	if err != nil {
-		return Subject{}, err
+		return Holder{}, err
 	}
-	subject := Subject{
+	holder := Holder{
 		PublicKey: pub,
 		Yubico:    yk,
 	}
-	return subject, nil
+	return holder, nil
 }
 
-func (s Subject) GetID() ([]byte, error) {
-	return lib.EncodePublic(s.PublicKey)
+func (s Holder) GetSubject() (verifiable.Subject, error) {
+	id, err := lib.EncodePublic(s.PublicKey)
+	if err != nil {
+		return verifiable.Subject{}, err
+	}
+	return verifiable.Subject{
+		ID:           string(id),
+		CustomFields: nil,
+	}, nil
 }
 
-func (s Subject) SignPresentation(credentials entity.Credential, nonce []byte, yubikeyPIN int32) (entity.Presentation, error) {
+func (s Holder) SignPresentation(credentials entity.Credential, nonce []byte, yubikeyPIN int32) (entity.Presentation, error) {
 	presentation := entity.Presentation{
 		PresentationToSign: entity.PresentationToSign{
 			Context:            vcContext,
@@ -60,7 +68,7 @@ func (s Subject) SignPresentation(credentials entity.Credential, nonce []byte, y
 	return presentation, err
 }
 
-func SignProofHolderWithYubikey(s Subject, docToSign []byte, yubikeyPIN int32) (entity.Proof, error) {
+func SignProofHolderWithYubikey(s Holder, docToSign []byte, yubikeyPIN int32) (entity.Proof, error) {
 	sig, err := s.Yubico.SignByYubikey(s.PublicKey, docToSign, yubikeyPIN)
 	if err != nil {
 		return entity.Proof{}, err
