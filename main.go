@@ -7,7 +7,7 @@ import (
 
 func main() {
 	// set data text
-	ybk := yubico.NewSignPin()
+	ybk := yubico.NewYubikey()
 	out, err := ybk.VerifyByYubikey([]byte("aaa"), int32(123456))
 	if err != nil {
 		panic(err)
