@@ -1,11 +1,12 @@
 package yubico
 
 import (
-	"crypto"
+	crypto "crypto"
 	"crypto/rand"
+	"crypto/sha256"
+	"errors"
 	"fmt"
 	"github.com/go-piv/piv-go/piv"
-	"os/exec"
 	"strings"
 )
 
@@ -56,25 +57,17 @@ func (s *Yubikey) ImportKey() (crypto.PublicKey, error) {
 	return s.yk.GenerateKey(piv.DefaultManagementKey, piv.SlotSignature, key)
 }
 
-func (s *Yubikey) VerifyByYubikey(pub crypto.PublicKey, text []byte, pin int32) ([]byte, error) {
+func (s *Yubikey) SignByYubikey(pub crypto.PublicKey, text []byte, pin int32) ([]byte, error) {
 	auth := piv.KeyAuth{PIN: fmt.Sprintf("%d", pin)}
 	priv, err := s.yk.PrivateKey(piv.SlotSignature, pub, auth)
 	if err != nil {
 		return nil, err
 	}
-	signed, err := priv.(*piv.ECDSAPrivateKey).Sign(rand.Reader, text, crypto.SHA256)
+	data := sha256.Sum256(text)
+	cs, ok := priv.(crypto.Signer)
+	if !ok {
+		return nil, errors.New("expected private key to implement crypto.Signer")
+	}
+	signed, err := cs.Sign(rand.Reader, data[:], crypto.SHA256)
 	return signed, err
-}
-
-func ImportKeyToYubikeySlot(pkcsByte []byte, password string) ([]byte, error) {
-	cmd := exec.Command("yubico-piv-tool",
-		"-s", "9c",
-		"-K", "PKCS12",
-		"-a", "set-chuid",
-		"-a", "import-key",
-		"-a", "import-cert",
-		"-p", password,
-		"-i", "./tmp/pkcs12.p12",
-	)
-	return RunCmd(*cmd, pkcsByte)
 }

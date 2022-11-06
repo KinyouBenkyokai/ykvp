@@ -51,6 +51,6 @@ func (i Issuer) SignCredential(claim entity.Claim, subjectID []byte) (entity.Cre
 		return creds, err
 	}
 
-	creds.Proof = entity.SignProofIssuer(i.keys, docToSign)
+	creds.Proof, err = entity.SignProofIssuer(i.keys, docToSign)
 	return creds, err
 }

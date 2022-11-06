@@ -2,14 +2,14 @@ package lib
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	"crypto"
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
 )
 
 // EncodePublic public key
-func EncodePublic(pubKey *ecdsa.PublicKey) ([]byte, error) {
+func EncodePublic(pubKey crypto.PublicKey) ([]byte, error) {
 	encoded, err := x509.MarshalPKIXPublicKey(pubKey)
 	if err != nil {
 		return []byte{}, err
