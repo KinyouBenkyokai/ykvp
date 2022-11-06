@@ -35,6 +35,10 @@ func CreateIssuer(id, name string) (Issuer, error) {
 	return issuer, err
 }
 
+func GetCredentialFromJSON(json []byte) {
+
+}
+
 func (i Issuer) SignCredential(claim entity.Claim, subjectID []byte) (entity.Credential, error) {
 	creds := entity.Credential{CredentialToSign: entity.CredentialToSign{
 		Context:          vcContext,
