@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const ed25519Type = "Ed25519Signature2018"
+const ecdsaType = "ecdsasecp256k1signature2019"
 
 type Proof struct {
 	TypeOfProof string           `json:"type"`
@@ -20,7 +20,7 @@ type Proof struct {
 
 func SignProofIssuer(keys KeyPair, docToSign []byte) (Proof, error) {
 	proof := Proof{
-		TypeOfProof: ed25519Type,
+		TypeOfProof: ecdsaType,
 		Created:     time.Now(),
 		Creator:     keys.PublicKey,
 	}

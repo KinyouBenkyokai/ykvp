@@ -14,7 +14,7 @@ const (
 	vcSpec   = "https://www.w3.org/2018/credentials/v1"
 )
 
-const ed25519Type = "Ed25519Signature2018"
+const ecdsaType = "ecdsasecp256k1signature2019"
 
 var vcContext = []string{vcSpec}
 
@@ -66,7 +66,7 @@ func SignProofHolderWithYubikey(s Subject, docToSign []byte, yubikeyPIN int32) (
 		return entity.Proof{}, err
 	}
 	proof := entity.Proof{
-		TypeOfProof: ed25519Type,
+		TypeOfProof: ecdsaType,
 		Created:     time.Now(),
 		Creator:     s.PublicKey,
 		Signature:   sig,
