@@ -19,18 +19,19 @@ const (
 )
 
 func generatePKCS12FileAndImportToYubikey() (*ecdsa.PublicKey, error) {
-	prv, _ := key.GenerateECDSAPrivateKey()
-	pub := key.GetPublicKeyFromECDSAPrivateKey(prv)
-	prvPEM, err := key.CreateX509FromECDSAPrivateKey(prv, "./tmp/prv.pem")
+	gk := key.NewGenerateKey()
+	prv, _ := gk.GenerateECDSAPrivateKey()
+	pub := gk.GetPublicKeyFromECDSAPrivateKey(prv)
+	prvPEM, err := gk.CreateX509FromECDSAPrivateKey(prv)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println(prvPEM)
-	cert, err := key.GenerateCert(pub, prv, "./tmp/cert.pem")
+	cert, err := gk.GenerateCert(pub, prv, key.SetCreateFiles("./tmp/cert.pem"))
 	if err != nil {
 		return nil, err
 	}
-	pkcs12, err := key.GeneratePKCS12(cert, prv, "./tmp/pkcs12.p12", "password")
+	pkcs12, err := gk.GeneratePKCS12(cert, prv, "password", key.SetCreateFiles("./tmp/pkcs12.p12"))
 	if err != nil {
 		return nil, err
 	}

@@ -22,11 +22,11 @@ type Issuer struct {
 }
 
 func CreateIssuer(id, name string) (Issuer, error) {
-	privateKey, err := key.GenerateECDSAPrivateKey()
+	privateKey, err := key.NewGenerateKey().GenerateECDSAPrivateKey()
 	if err != nil {
 		return Issuer{}, fmt.Errorf("couldn't create issuer keys: %w", err)
 	}
-	pub := key.GetPublicKeyFromECDSAPrivateKey(privateKey)
+	pub := key.NewGenerateKey().GetPublicKeyFromECDSAPrivateKey(privateKey)
 	issuer := Issuer{
 		keys: entity.KeyPair{PublicKey: pub, PrivateKey: privateKey},
 		ID:   id,
