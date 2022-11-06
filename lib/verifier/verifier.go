@@ -2,12 +2,13 @@ package verifier
 
 import (
 	"bytes"
+	"crypto"
 	"crypto/ecdsa"
-	"crypto/sha256"
 	"encoding/asn1"
 	"fmt"
 	"github.com/kinyoubenkyokai/yuberify/lib"
 	"github.com/kinyoubenkyokai/yuberify/lib/entity"
+	"math/big"
 	"math/rand"
 )
 
@@ -73,8 +74,14 @@ func (v Verifier) VerifiesPresentation(presentation entity.Presentation) (err er
 func verifiesSignature(proof entity.Proof, signedDoc []byte) bool {
 	pubKey := proof.Creator
 	signature := proof.Signature
-	var sig entity.RawSignature
-	asn1.Unmarshal(signature, &sig)
-	hash := sha256.Sum256([]byte(signedDoc))
-	return ecdsa.Verify(pubKey, hash[:], sig.R, sig.S)
+	var esig struct {
+		R, S *big.Int
+	}
+	if _, err := asn1.Unmarshal(signature, &esig); err != nil {
+		return false
+	}
+	hasher := crypto.Hash.New(crypto.SHA256)
+	hasher.Write(signedDoc)
+
+	return ecdsa.Verify(pubKey, hasher.Sum(nil), esig.R, esig.S)
 }

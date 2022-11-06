@@ -23,9 +23,13 @@ type Subject struct {
 }
 
 func CreateSubject(pub *ecdsa.PublicKey) (Subject, error) {
+	yk, err := yubico.NewYubikey()
+	if err != nil {
+		return Subject{}, err
+	}
 	subject := Subject{
 		PublicKey: pub,
-		Yubico:    yubico.NewYubikey(),
+		Yubico:    yk,
 	}
 	return subject, nil
 }
@@ -56,7 +60,7 @@ func (s Subject) SignPresentation(credentials entity.Credential, nonce []byte, y
 }
 
 func SignProofHolderWithYubikey(s Subject, docToSign []byte, yubikeyPIN int32) (entity.Proof, error) {
-	sig, err := s.Yubico.VerifyByYubikey(docToSign, yubikeyPIN)
+	sig, err := s.Yubico.VerifyByYubikey(s.PublicKey, docToSign, yubikeyPIN)
 	if err != nil {
 		return entity.Proof{}, err
 	}

@@ -7,7 +7,6 @@ import (
 	"github.com/kinyoubenkyokai/yuberify/lib/entity"
 	"github.com/kinyoubenkyokai/yuberify/lib/holder"
 	"github.com/kinyoubenkyokai/yuberify/lib/issuer"
-	"github.com/kinyoubenkyokai/yuberify/lib/key"
 	"github.com/kinyoubenkyokai/yuberify/lib/verifier"
 	"github.com/kinyoubenkyokai/yuberify/lib/yubico"
 	"os"
@@ -19,29 +18,35 @@ const (
 )
 
 func generatePKCS12FileAndImportToYubikey() (*ecdsa.PublicKey, error) {
-	gk := key.NewGenerateKey()
-	prv, _ := gk.GenerateECDSAPrivateKey()
-	pub := gk.GetPublicKeyFromECDSAPrivateKey(prv)
-	prvPEM, err := gk.CreateX509FromECDSAPrivateKey(prv)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(prvPEM)
-	cert, err := gk.GenerateCert(pub, prv, key.SetCreateFiles("./tmp/cert.pem"))
-	if err != nil {
-		return nil, err
-	}
-	pkcs12, err := gk.GeneratePKCS12(cert, prv, "password", key.SetCreateFiles("./tmp/pkcs12.p12"))
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(pkcs12)
+	//gk := key.NewGenerateKey()
+	//prv, _ := gk.GenerateECDSAPrivateKey()
+	//pub := gk.GetPublicKeyFromECDSAPrivateKey(prv)
+	//prvPEM, err := gk.CreateX509FromECDSAPrivateKey(prv)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//fmt.Println(prvPEM)
+	//cert, err := gk.GenerateCert(pub, prv, key.SetCreateFiles("./tmp/cert.pem"))
+	//if err != nil {
+	//	return nil, err
+	//}
+	//pkcs12, err := gk.GeneratePKCS12(cert, prv, "password", key.SetCreateFiles("./tmp/pkcs12.p12"))
+	//if err != nil {
+	//	return nil, err
+	//}
+	//fmt.Println(pkcs12)
 
-	_, err = yubico.ImportKeyToYubikeySlot(pkcs12, "password")
+	yk, err := yubico.NewYubikey()
 	if err != nil {
 		return nil, err
 	}
-	return pub, nil
+	defer yk.Close()
+	pub, err := yk.ImportKey()
+	if err != nil {
+		return nil, err
+	}
+
+	return pub.(*ecdsa.PublicKey), nil
 }
 func main() {
 	pub, err := generatePKCS12FileAndImportToYubikey()
