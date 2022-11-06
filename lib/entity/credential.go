@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/json"
 	"github.com/kinyoubenkyokai/yuberify/lib"
 	"time"
 )
@@ -27,6 +28,14 @@ type Credential struct {
 	CredentialToSign
 
 	Proof Proof `json:"proof"`
+}
+
+func UnmarshalCredential(b []byte) (*CredentialToSign, error) {
+	var res CredentialToSign
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (c Claim) GetType() []string {
