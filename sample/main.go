@@ -18,7 +18,7 @@ const (
 	issuerName = "The Marvelous University of Oxford"
 )
 
-func test() (*ecdsa.PublicKey, error) {
+func generatePKCS12FileAndImportToYubikey() (*ecdsa.PublicKey, error) {
 	prv, _ := key.GenerateECDSAPrivateKey()
 	pub := key.GetPublicKeyFromECDSAPrivateKey(prv)
 	prvPEM, err := key.CreateX509FromECDSAPrivateKey(prv, "./tmp/prv.pem")
@@ -43,7 +43,7 @@ func test() (*ecdsa.PublicKey, error) {
 	return pub, nil
 }
 func main() {
-	pub, err := test()
+	pub, err := generatePKCS12FileAndImportToYubikey()
 	if err != nil {
 		panic(err)
 	}
