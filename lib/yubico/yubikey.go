@@ -2,6 +2,7 @@ package yubico
 
 import (
 	crypto "crypto"
+	"crypto/ecdsa"
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
@@ -20,6 +21,23 @@ type pivYubikey interface {
 
 type Yubikey struct {
 	yk pivYubikey
+}
+
+func GenerateAndImportKeyToYubikey() (*ecdsa.PublicKey, error) {
+	yk, err := NewYubikey()
+	if err != nil {
+		return nil, err
+	}
+	defer yk.Close()
+	pub, err := yk.GenerateKey()
+	if err != nil {
+		return nil, err
+	}
+	pubkey, ok := pub.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("public key is not an ECDSA key")
+	}
+	return pubkey, nil
 }
 
 func NewYubikey() (*Yubikey, error) {

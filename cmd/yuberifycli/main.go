@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/kinyoubenkyokai/yuberify/lib/yubico"
 	"log"
 	"os"
 
@@ -41,14 +42,23 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			nonce, err := verifier.MakeNonce()
+			nonce, err := verifier.CreateVerifier().MakeNonce()
+			if err != nil {
+				return err
+			}
+
+			pub, err := yubico.GenerateAndImportKeyToYubikey()
+			if err != nil {
+				return err
+			}
+			holder, err := holder.CreateHolder(pub)
 			if err != nil {
 				return err
 			}
 			presentation, err := holder.SignPresentation(
-				credentials,
+				entity.Credential{CredentialToSign: *credentials},
 				nonce,
-				pin,
+				int32(pin),
 			)
 
 			nicePrint(presentation, "Presentation")
