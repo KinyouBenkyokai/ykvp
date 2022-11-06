@@ -8,7 +8,7 @@ import (
 func main() {
 	// set data text
 	ybk := yubico.NewYubikey()
-	out, err := ybk.VerifyByYubikey([]byte("aaa"), int32(123456))
+	out, err := ybk.SignByYubikey([]byte("aaa"), int32(123456))
 	if err != nil {
 		panic(err)
 	}

@@ -1,6 +1,7 @@
 package holder
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"github.com/kinyoubenkyokai/yuberify/lib"
 	"github.com/kinyoubenkyokai/yuberify/lib/entity"
@@ -18,14 +19,18 @@ const ed25519Type = "Ed25519Signature2018"
 var vcContext = []string{vcSpec}
 
 type Subject struct {
-	PublicKey *ecdsa.PublicKey
+	PublicKey crypto.PublicKey
 	Yubico    *yubico.Yubikey
 }
 
 func CreateSubject(pub *ecdsa.PublicKey) (Subject, error) {
+	yk, err := yubico.NewYubikey()
+	if err != nil {
+		return Subject{}, err
+	}
 	subject := Subject{
 		PublicKey: pub,
-		Yubico:    yubico.NewYubikey(),
+		Yubico:    yk,
 	}
 	return subject, nil
 }
@@ -56,7 +61,7 @@ func (s Subject) SignPresentation(credentials entity.Credential, nonce []byte, y
 }
 
 func SignProofHolderWithYubikey(s Subject, docToSign []byte, yubikeyPIN int32) (entity.Proof, error) {
-	sig, err := s.Yubico.VerifyByYubikey(docToSign, yubikeyPIN)
+	sig, err := s.Yubico.SignByYubikey(s.PublicKey, docToSign, yubikeyPIN)
 	if err != nil {
 		return entity.Proof{}, err
 	}

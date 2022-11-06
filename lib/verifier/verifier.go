@@ -2,12 +2,13 @@ package verifier
 
 import (
 	"bytes"
+	"crypto"
 	"crypto/ecdsa"
-	"crypto/sha256"
 	"encoding/asn1"
 	"fmt"
 	"github.com/kinyoubenkyokai/yuberify/lib"
 	"github.com/kinyoubenkyokai/yuberify/lib/entity"
+	"math/big"
 	"math/rand"
 )
 
@@ -27,7 +28,7 @@ func (v Verifier) MakeNonce() (nonce []byte, err error) {
 	return nonce, err
 }
 
-func (v Verifier) VerifiesPresentation(presentation entity.Presentation) (err error) {
+func (v Verifier) VerifiesPresentation(presentation entity.Presentation, holderPubkey crypto.PublicKey) (err error) {
 	credential := presentation.Credential
 
 	// A - Checks the Presentation is signed by the Subject of the credential
@@ -49,7 +50,7 @@ func (v Verifier) VerifiesPresentation(presentation entity.Presentation) (err er
 		)
 	}
 
-	okCred := verifiesSignature(credential.Proof, signedCred)
+	okCred := verifiesSignature(credential.Proof.Creator, credential.Proof.Signature, signedCred)
 	if !okCred {
 		return fmt.Errorf("Invalid credential signature.")
 	}
@@ -62,7 +63,7 @@ func (v Verifier) VerifiesPresentation(presentation entity.Presentation) (err er
 		)
 	}
 
-	okPres := verifiesSignature(presentation.Proof, signedPres)
+	okPres := verifiesSignature(holderPubkey, presentation.Proof.Signature, signedPres)
 	if !okPres {
 		return fmt.Errorf("Invalid presentation signature.")
 	}
@@ -70,11 +71,22 @@ func (v Verifier) VerifiesPresentation(presentation entity.Presentation) (err er
 	return err
 }
 
-func verifiesSignature(proof entity.Proof, signedDoc []byte) bool {
-	pubKey := proof.Creator
-	signature := proof.Signature
-	var sig entity.RawSignature
-	asn1.Unmarshal(signature, &sig)
-	hash := sha256.Sum256([]byte(signedDoc))
-	return ecdsa.Verify(pubKey, hash[:], sig.R, sig.S)
+func verifiesSignature(pubKey crypto.PublicKey, signature, signedDoc []byte) bool {
+	pub, ok := pubKey.(*ecdsa.PublicKey)
+	if !ok {
+		return false
+	}
+	var sig struct {
+		R, S *big.Int
+	}
+	if _, err := asn1.Unmarshal(signature, &sig); err != nil {
+		return false
+	}
+
+	hasher := crypto.Hash.New(crypto.SHA256)
+	hasher.Write(signedDoc)
+	if !ecdsa.Verify(pub, hasher.Sum(nil), sig.R, sig.S) {
+		return false
+	}
+	return true
 }

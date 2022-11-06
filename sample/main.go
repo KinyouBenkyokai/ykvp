@@ -7,7 +7,6 @@ import (
 	"github.com/kinyoubenkyokai/yuberify/lib/entity"
 	"github.com/kinyoubenkyokai/yuberify/lib/holder"
 	"github.com/kinyoubenkyokai/yuberify/lib/issuer"
-	"github.com/kinyoubenkyokai/yuberify/lib/key"
 	"github.com/kinyoubenkyokai/yuberify/lib/verifier"
 	"github.com/kinyoubenkyokai/yuberify/lib/yubico"
 	"os"
@@ -19,36 +18,42 @@ const (
 )
 
 func generatePKCS12FileAndImportToYubikey() (*ecdsa.PublicKey, error) {
-	gk := key.NewGenerateKey()
-	prv, _ := gk.GenerateECDSAPrivateKey()
-	pub := gk.GetPublicKeyFromECDSAPrivateKey(prv)
-	prvPEM, err := gk.CreateX509FromECDSAPrivateKey(prv)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(prvPEM)
-	cert, err := gk.GenerateCert(pub, prv, key.SetCreateFiles("./tmp/cert.pem"))
-	if err != nil {
-		return nil, err
-	}
-	pkcs12, err := gk.GeneratePKCS12(cert, prv, "password", key.SetCreateFiles("./tmp/pkcs12.p12"))
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(pkcs12)
+	//gk := key.NewGenerateKey()
+	//prv, _ := gk.GenerateECDSAPrivateKey()
+	//pub := gk.GetPublicKeyFromECDSAPrivateKey(prv)
+	//prvPEM, err := gk.CreateX509FromECDSAPrivateKey(prv)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//fmt.Println(prvPEM)
+	//cert, err := gk.GenerateCert(pub, prv, key.SetCreateFiles("./tmp/cert.pem"))
+	//if err != nil {
+	//	return nil, err
+	//}
+	//pkcs12, err := gk.GeneratePKCS12(cert, prv, "password", key.SetCreateFiles("./tmp/pkcs12.p12"))
+	//if err != nil {
+	//	return nil, err
+	//}
+	//fmt.Println(pkcs12)
 
-	_, err = yubico.ImportKeyToYubikeySlot(pkcs12, "password")
+	yk, err := yubico.NewYubikey()
 	if err != nil {
 		return nil, err
 	}
-	return pub, nil
+	defer yk.Close()
+	pub, err := yk.ImportKey()
+	if err != nil {
+		return nil, err
+	}
+
+	return pub.(*ecdsa.PublicKey), nil
 }
 func main() {
-	pub, err := generatePKCS12FileAndImportToYubikey()
+	holderPubkey, err := generatePKCS12FileAndImportToYubikey()
 	if err != nil {
 		panic(err)
 	}
-	issuer, subject, err := part1(pub)
+	issuer, subject, err := part1(holderPubkey)
 	if err != nil {
 		panic(err)
 	}
@@ -61,7 +66,7 @@ func main() {
 	// Part III: The Verifier (any third party) can check the claim of the
 	// Subject that it holds the credentials
 	verifier := verifier.CreateVerifier()
-	if err := part3(subject, verifier, credentials); err != nil {
+	if err := part3(subject, verifier, credentials, holderPubkey); err != nil {
 		panic(err)
 	}
 }
@@ -106,7 +111,7 @@ func part2(issuer issuer.Issuer, subject holder.Subject) (entity.Credential, err
 	return credentials, err
 }
 
-func part3(subject holder.Subject, verifier verifier.Verifier, credentials entity.Credential) error {
+func part3(subject holder.Subject, verifier verifier.Verifier, credentials entity.Credential, holderPubkey *ecdsa.PublicKey) error {
 	// Step 1: The verifier creates a challenge/nonce to be included in the
 	// presentation which will be signed bby the subject.
 	nonce, err := verifier.MakeNonce()
@@ -128,7 +133,7 @@ func part3(subject holder.Subject, verifier verifier.Verifier, credentials entit
 
 	// Step 3: The verifier checks that the signature of the presentation is
 	// correct.
-	err = verifier.VerifiesPresentation(presentation)
+	err = verifier.VerifiesPresentation(presentation, holderPubkey)
 	if err != nil {
 		return fmt.Errorf("Verificiation failed: %w", err)
 	}
