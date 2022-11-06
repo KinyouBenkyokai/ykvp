@@ -8,11 +8,11 @@ import (
 type Yubikey struct {
 }
 
-func NewYubikey() Yubikey {
-	return Yubikey{}
+func NewYubikey() *Yubikey {
+	return &Yubikey{}
 }
 
-func (s Yubikey) VerifyByYubikey(text []byte, pin int32) ([]byte, error) {
+func (s *Yubikey) VerifyByYubikey(text []byte, pin int32) ([]byte, error) {
 	pinstr := fmt.Sprintf("%d", pin)
 	cmd := exec.Command("yubico-piv-tool",
 		"-a", "verify-pin",

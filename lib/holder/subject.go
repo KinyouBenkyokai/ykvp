@@ -19,7 +19,7 @@ var vcContext = []string{vcSpec}
 
 type Subject struct {
 	PublicKey *ecdsa.PublicKey
-	Yubico    yubico.Yubikey
+	Yubico    *yubico.Yubikey
 }
 
 func CreateSubject(pub *ecdsa.PublicKey) (Subject, error) {
