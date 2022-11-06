@@ -28,7 +28,11 @@ func generatePKCS12FileAndImportToYubikey() (*ecdsa.PublicKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return pub.(*ecdsa.PublicKey), nil
+	pubkey, ok := pub.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("public key is not an ECDSA key")
+	}
+	return pubkey, nil
 }
 
 func main() {
