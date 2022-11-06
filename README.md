@@ -4,5 +4,5 @@
 ## Installation
 
 ```bash
-$ go install github.com/kinyoubenkyokai/yuberify/cmd/yuberifycli@v0.0.1
+$ go install github.com/kinyoubenkyokai/ykvp/cmd/ykvpcli@v0.0.1
 ```
