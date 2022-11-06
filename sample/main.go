@@ -42,11 +42,13 @@ func main() {
 		panic(err)
 	}
 
+	// Part I: Create the issuer, the subject, and the verifier.
 	issuer, holder, err := part1(holderPubkey)
 	if err != nil {
 		panic(err)
 	}
 
+	// Part II: Create credentials for the subject.
 	subject, err := holder.GetSubject()
 	if err != nil {
 		panic(err)
@@ -56,6 +58,8 @@ func main() {
 		panic(err)
 	}
 	verifier := verifier.CreateVerifier()
+
+	// Part III: Verify the credentials.
 	if err := part3(holder, verifier, credentials, holderPubkey); err != nil {
 		panic(err)
 	}
