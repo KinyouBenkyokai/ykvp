@@ -7,8 +7,6 @@ and also has a function to issue a verifiable credential as an issuer.
 
 You can find out more details from the [godocs](https://pkg.go.dev/github.com/kinyoubenkyokai/ykvp).
 
-For a description in Japanese, please see [here](README.ja.md).
-
 ## Prerequisite
 
 This library depends on [piv-go](https://github.com/go-piv/piv-go). Check [here](https://github.com/go-piv/piv-go#installation) for details.
